@@ -307,6 +307,9 @@ def db_get(t, gid, uid):
 
 def db_set(t, gid, uid, n):
     _exec("INSERT INTO " + t + "(guild_id,user_id,amount) VALUES(?,?,?) ON CONFLICT(guild_id,user_id) DO UPDATE SET amount=excluded.amount", (gid, uid, n))
+    if t == "vouches":
+        sb_upsert("vouches", {"guild_id": gid, "user_id": uid, "amount": n})
+        _queue_active_middleman_sync(uid)
 
 def db_add(t, gid, uid, d=1):
     if t not in {"vouches", "warnings"}:
@@ -328,6 +331,7 @@ def db_add(t, gid, uid, d=1):
             "user_id": uid,
             "amount": new_amount,
         })
+        _queue_active_middleman_sync(uid)
     return new_amount
 
 def db_top(t, gid, limit=10):
@@ -840,6 +844,243 @@ def sb_upsert(table, data):
 
 def sb_patch(table, query, data):
     sb_push(table, data, method="PATCH", query=query)
+
+
+_middlemen_reconcile_task = None
+_middlemen_reconcile_requested = False
+
+
+def _mm_authorized_joined_at(guild_id, user_id):
+    try:
+        row = _get_row(
+            "SELECT added_at FROM mm_authorized WHERE guild_id=? AND user_id=?",
+            (guild_id, user_id),
+        )
+        value = row["added_at"] if row else None
+        if not value:
+            return None
+        joined_at = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        if joined_at.tzinfo is None:
+            joined_at = joined_at.replace(tzinfo=timezone.utc)
+        return joined_at.astimezone(timezone.utc).isoformat()
+    except Exception:
+        return None
+
+
+def _middleman_vouch_count(user_id):
+    try:
+        row = _get_row(
+            "SELECT COALESCE(SUM(amount), 0) AS amount FROM vouches WHERE user_id=?",
+            (user_id,),
+        )
+        return int(row["amount"] or 0) if row else 0
+    except Exception:
+        return None
+
+
+def _local_total_vouches(guild_id):
+    try:
+        row = _get_row(
+            "SELECT COALESCE(SUM(amount), 0) AS amount FROM vouches WHERE guild_id=?",
+            (guild_id,),
+        )
+        return int(row["amount"] or 0) if row else 0
+    except Exception:
+        return None
+
+
+def _middleman_payload(member):
+    try:
+        avatar_url = member.display_avatar.url
+    except Exception:
+        avatar_url = ""
+    payload = {
+        "discord_id": str(member.id),
+        "username": member.name,
+        "display_name": member.display_name,
+        "avatar_url": avatar_url,
+        "active": True,
+    }
+    vouch_count = _middleman_vouch_count(member.id)
+    if vouch_count is not None:
+        payload["vouch_count"] = vouch_count
+    return payload
+
+
+def _queue_middleman_member(member, joined_at=None, existing_rows=None):
+    if member is None or getattr(member, "bot", False):
+        return
+    if existing_rows is None:
+        return
+    user_id = str(member.id)
+    payload = _middleman_payload(member)
+    existing = existing_rows.get(user_id)
+    if existing is None:
+        payload["earnings"] = 0
+        if joined_at:
+            payload["joined_at"] = joined_at
+    else:
+        if existing.get("earnings") is not None:
+            payload["earnings"] = existing["earnings"]
+        if existing.get("joined_at"):
+            payload["joined_at"] = existing["joined_at"]
+        elif joined_at:
+            payload["joined_at"] = joined_at
+    sb_upsert("middlemen", payload)
+
+
+def _queue_active_middleman_sync(user_id):
+    try:
+        for guild in bot.guilds:
+            mm_role_id = get_role_id(guild.id, "mm_role")
+            role = guild.get_role(mm_role_id) if mm_role_id else None
+            if role is None:
+                continue
+            member = guild.get_member(user_id)
+            if member is None or not member_has_role(member, mm_role_id):
+                member = next((item for item in role.members if item.id == user_id), None)
+            if member is not None and not member.bot and member_has_role(member, mm_role_id):
+                vouch_count = _middleman_vouch_count(user_id)
+                if vouch_count is not None:
+                    sb_patch(
+                        "middlemen",
+                        "discord_id=eq." + str(user_id),
+                        {"vouch_count": vouch_count},
+                    )
+                return
+    except Exception as error:
+        log.warning("[SB] middleman vouch-count sync failed: %s", type(error).__name__)
+
+
+async def _load_middlemen_metadata():
+    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+        return None
+    try:
+        session = bot.http._HTTPClient__session
+        headers = {
+            "apikey": SUPABASE_SERVICE_KEY,
+            "Authorization": "Bearer " + SUPABASE_SERVICE_KEY,
+            "Accept": "application/json",
+        }
+        url = SUPABASE_URL + "/rest/v1/middlemen?select=discord_id,active,joined_at,earnings"
+        metadata = {}
+        offset = 0
+        page_size = 1000
+        while True:
+            page_headers = dict(headers)
+            page_headers["Range-Unit"] = "items"
+            page_headers["Range"] = "{}-{}".format(offset, offset + page_size - 1)
+            async with session.get(url, headers=page_headers, timeout=10) as response:
+                if response.status >= 400:
+                    log.warning("[SB] middlemen metadata read failed with HTTP %s", response.status)
+                    return None
+                rows = await response.json(content_type=None)
+                content_range = response.headers.get("Content-Range", "")
+            if not isinstance(rows, list):
+                return None
+            for row in rows:
+                if isinstance(row, dict) and row.get("discord_id") is not None:
+                    metadata[str(row["discord_id"])] = row
+            offset += len(rows)
+            if not rows or len(rows) < page_size:
+                if "/" not in content_range or content_range.rsplit("/", 1)[1] == "*":
+                    break
+                try:
+                    if offset >= int(content_range.rsplit("/", 1)[1]):
+                        break
+                except ValueError:
+                    break
+            if offset == 0:
+                break
+        return metadata
+    except Exception as error:
+        log.warning("[SB] middlemen metadata read failed: %s", type(error).__name__)
+        return None
+
+
+async def sync_middlemen_for_guild(guild, roster=None):
+    if roster is None:
+        roster = {}
+    mm_role_id = get_role_id(guild.id, "mm_role")
+    role = guild.get_role(mm_role_id) if mm_role_id else None
+    if role is None:
+        return roster
+
+    for member in tuple(role.members):
+        if member.bot:
+            continue
+        user_id = str(member.id)
+        joined_at = _mm_authorized_joined_at(guild.id, member.id)
+        current = roster.get(user_id)
+        if current is None or (not current["joined_at"] and joined_at):
+            roster[user_id] = {"member": member, "joined_at": joined_at}
+    return roster
+
+
+async def reconcile_middlemen():
+    existing_rows = await _load_middlemen_metadata()
+    if existing_rows is None:
+        return
+    roster = {}
+    scan_complete = True
+
+    for guild in bot.guilds:
+        mm_role_id = get_role_id(guild.id, "mm_role")
+        if not mm_role_id:
+            continue
+        if guild.get_role(mm_role_id) is None:
+            scan_complete = False
+            log.warning("[SB] configured MM role missing in guild %s", guild.id)
+            continue
+        try:
+            await asyncio.wait_for(guild.chunk(), timeout=20)
+        except Exception as error:
+            scan_complete = False
+            log.warning("[SB] member chunk failed for guild %s: %s", guild.id, type(error).__name__)
+        try:
+            await sync_middlemen_for_guild(guild, roster)
+        except Exception as error:
+            scan_complete = False
+            log.warning("[SB] MM roster scan failed for guild %s: %s", guild.id, type(error).__name__)
+
+    for user_id, entry in roster.items():
+        _queue_middleman_member(
+            entry["member"],
+            joined_at=entry["joined_at"],
+            existing_rows=existing_rows,
+        )
+
+    if not scan_complete:
+        return
+    for user_id, row in existing_rows.items():
+        if row.get("active") and user_id not in roster and user_id.isdigit():
+            sb_patch("middlemen", "discord_id=eq." + user_id, {"active": False})
+
+
+async def _middlemen_reconcile_worker():
+    global _middlemen_reconcile_task, _middlemen_reconcile_requested
+    try:
+        while True:
+            _middlemen_reconcile_requested = False
+            try:
+                await reconcile_middlemen()
+            except Exception as error:
+                log.warning("[SB] middlemen reconciliation failed: %s", type(error).__name__)
+            if not _middlemen_reconcile_requested:
+                return
+    finally:
+        _middlemen_reconcile_task = None
+
+
+def schedule_middlemen_reconciliation():
+    global _middlemen_reconcile_task, _middlemen_reconcile_requested
+    if _middlemen_reconcile_task is not None and not _middlemen_reconcile_task.done():
+        _middlemen_reconcile_requested = True
+        return
+    try:
+        _middlemen_reconcile_task = asyncio.create_task(_middlemen_reconcile_worker())
+    except RuntimeError:
+        _middlemen_reconcile_task = None
 
 async def _sb_worker():
     await bot.wait_until_ready()
@@ -4404,12 +4645,18 @@ async def update_stats():
             except Exception:
                 pass
         try:
-            sb_upsert("guild_stats", {
+            stats_payload = {
                 "guild_id": guild.id,
+                "guild_name": guild.name,
+                "icon_url": guild.icon.url if guild.icon else None,
                 "member_count": guild.member_count or 0,
                 "boost_count": guild.premium_subscription_count or 0,
                 "online_count": sum(1 for m in guild.members if m.status != discord.Status.offline),
-            })
+            }
+            total_vouches = _local_total_vouches(guild.id)
+            if total_vouches is not None:
+                stats_payload["total_vouches"] = total_vouches
+            sb_upsert("guild_stats", stats_payload)
         except Exception as e:
             log.warning("[SB] guild_stats: " + str(e))
 async def refresh_all_open_ticket_controls():
@@ -4524,6 +4771,7 @@ async def on_ready():
         log.warning("open ticket permission repair: " + str(e))
     if _sb_worker_task is None or _sb_worker_task.done():
         _sb_worker_task = asyncio.create_task(_sb_worker())
+    schedule_middlemen_reconciliation()
     for v in (
         TicketControlView(),
         DisputeTradeView(),
@@ -5033,8 +5281,11 @@ async def vouch(ctx, member: discord.Member = None):
     count = db_add("vouches", ctx.guild.id, member.id)
     sb_upsert("vouch_events", {
         "guild_id": ctx.guild.id,
-        "user_id": member.id,
+        "vouched_for": member.id,
         "vouched_by": ctx.author.id,
+        "amount_delta": 1,
+        "screenshot_url": None,
+        "created_at": datetime.now(timezone.utc).isoformat(),
     })
     icon = ctx.guild.icon.url if ctx.guild.icon else None
     e = discord.Embed(color=C["ok"])
@@ -6809,6 +7060,7 @@ async def addmm_cmd(ctx, member: discord.Member = None):
             await member.add_roles(role, reason="$addmm")
         except discord.Forbidden:
             return await ctx.send(embed=discord.Embed(description="Couldn't give the MM role.", color=C["err"]))
+    schedule_middlemen_reconciliation()
     await ctx.send(embed=discord.Embed(description=member.mention + " is now an MM.", color=C["ok"]))
 
 
@@ -6844,6 +7096,7 @@ async def removemm_cmd(ctx, member: discord.Member = None):
             await member.remove_roles(role, reason="$removemm")
         except Exception:
             pass
+    schedule_middlemen_reconciliation()
     await ctx.send(embed=discord.Embed(description=member.mention + " removed from MM list.", color=C["warn"]))
 @bot.command(name="selfrole")
 @cooldown(user_seconds=3, global_count=10, global_seconds=60)
@@ -7017,6 +7270,7 @@ async def setmmrole(ctx, *, raw: str = None):
         return await ctx.send(embed=discord.Embed(description="Usage: `$setmmrole @role`", color=C["err"]))
     set_role_id(ctx.guild.id, "mm_role", role.id)
     await repair_all_open_ticket_permissions(ctx.guild)
+    schedule_middlemen_reconciliation()
     await ctx.send(embed=discord.Embed(description="MM role set to " + role.mention + ".", color=C["ok"]))
 
 @bot.command(name="setsupportrole")
