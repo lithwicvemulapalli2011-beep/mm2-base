@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Temporary admin panel for MM2 Base site configuration data." />
+    <meta name="theme-color" content="#1a0f08" />
+    <title>MM2 Base | Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/config.js"></script>
+    <script src="/app.js" defer></script>
+    <script src="/admin/admin.js" defer></script>
+  </head>
+  <body data-page="admin">
+    <header class="site-header">
+      <div class="container navbar">
+        <a class="brand" href="/" aria-label="MM2 Base home">
+          <span class="brand-logo-wrap">
+            <img src="/logo.png" alt="MM2 Base logo" />
+            <span class="brand-fallback">MM</span>
+          </span>
+          <span>MM2 Base</span>
+        </a>
+
+        <button class="mobile-menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false">
+          <span class="hamburger"></span>
+        </button>
+
+        <nav class="nav-links" aria-label="Main navigation">
+          <a class="nav-link" href="/">Home</a>
+          <a class="nav-link" href="/mms/">MMs</a>
+          <a class="nav-link" href="/lookup/">Lookup</a>
+          <a class="nav-link" href="/stats/">Stats</a>
+          <a class="nav-link" href="/vouches/">Vouches</a>
+          <a class="nav-link" href="/rules/">Rules</a>
+        </nav>
+
+        <a class="nav-cta" href="https://discord.gg/mm2trades" target="_blank" rel="noreferrer">Join Discord</a>
+      </div>
+    </header>
+
+    <main>
+      <div class="container">
+        <header class="page-header">
+          <h1 class="page-title">Admin</h1>
+          <p class="page-intro">Temporary client-side configuration panel for site_config values only. This is not secure authentication.</p>
+        </header>
+
+        <section class="admin-shell">
+          <div id="admin-auth-box" class="admin-panel auth-box" aria-live="polite">
+            <label class="form-group" for="admin-password">
+              <span>Temporary password</span>
+              <input id="admin-password" class="form-input" type="password" placeholder="Enter temporary admin password" />
+            </label>
+            <button id="admin-login" class="button" type="button">Unlock Admin</button>
+            <div id="admin-status" class="status-message" aria-live="polite"></div>
+          </div>
+
+          <div id="admin-config-form" class="admin-panel config-form" hidden>
+            <div class="form-grid">
+              <label class="form-group" for="config-key">
+                <span>Key</span>
+                <select id="config-key" class="form-select">
+                  <option value="hero_title">hero_title</option>
+                  <option value="hero_subtitle">hero_subtitle</option>
+                  <option value="announcement_text">announcement_text</option>
+                  <option value="cta_primary">cta_primary</option>
+                  <option value="cta_secondary">cta_secondary</option>
+                </select>
+              </label>
+              <label class="form-group" for="config-value">
+                <span>Value</span>
+                <input id="config-value" class="form-input" type="text" placeholder="Value to store in site_config" />
+              </label>
+            </div>
+            <button id="save-config" class="button" type="button">Save Configuration</button>
+            <div id="admin-status-2" class="status-message" aria-live="polite"></div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <div>
+          <h3 class="footer-title">MM2 Base</h3>
+          <p>Public middleman verification and community trust information for MM2 traders.</p>
+        </div>
+        <div>
+          <h3 class="footer-title">Navigation</h3>
+          <div class="footer-links">
+            <a href="/">Home</a>
+            <a href="/mms/">Middlemen</a>
+            <a href="/lookup/">Lookup</a>
+            <a href="/stats/">Stats</a>
+            <a href="/vouches/">Vouches</a>
+            <a href="/rules/">Rules</a>
+          </div>
+        </div>
+        <div>
+          <h3 class="footer-title">Community</h3>
+          <div class="footer-links">
+            <a href="https://discord.gg/mm2trades" target="_blank" rel="noreferrer">Join Discord</a>
+            <a href="/mms/">Middlemen</a>
+            <a href="/lookup/">Lookup</a>
+            <a href="/vouches/">Vouches</a>
+          </div>
+        </div>
+      </div>
+      <div class="container footer-small">© <span id="footer-year"></span> MM2 Base. All rights reserved.</div>
+    </footer>
+  </body>
+</html>

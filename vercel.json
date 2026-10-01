@@ -1,0 +1,32 @@
+{
+  "rewrites": [
+    {
+      "source": "/lookup/",
+      "destination": "/lookup/index.html"
+    },
+    {
+      "source": "/mms/",
+      "destination": "/mms/index.html"
+    },
+    {
+      "source": "/mm/",
+      "destination": "/mm/index.html"
+    },
+    {
+      "source": "/stats/",
+      "destination": "/stats/index.html"
+    },
+    {
+      "source": "/vouches/",
+      "destination": "/vouches/index.html"
+    },
+    {
+      "source": "/rules/",
+      "destination": "/rules/index.html"
+    },
+    {
+      "source": "/admin/",
+      "destination": "/admin/index.html"
+    }
+  ]
+}

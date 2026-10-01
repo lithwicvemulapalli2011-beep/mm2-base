@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="MM2 Base helps traders verify middlemen, view public vouches, and join the MM2 Discord community." />
+    <meta name="theme-color" content="#1a0f08" />
+    <title>MM2 Base | Discord Middleman Service</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/config.js"></script>
+    <script src="/app.js" defer></script>
+  </head>
+  <body data-page="home">
+    <header class="site-header">
+      <div class="container navbar">
+        <a class="brand" href="/" aria-label="MM2 Base home">
+          <span class="brand-logo-wrap">
+            <img src="/logo.png" alt="MM2 Base logo" />
+            <span class="brand-fallback">MM</span>
+          </span>
+          <span>MM2 Base</span>
+        </a>
+
+        <button class="mobile-menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false">
+          <span class="hamburger"></span>
+        </button>
+
+        <nav class="nav-links" aria-label="Main navigation">
+          <a class="nav-link" href="/">Home</a>
+          <a class="nav-link" href="/mms/">MMs</a>
+          <a class="nav-link" href="/lookup/">Lookup</a>
+          <a class="nav-link" href="/stats/">Stats</a>
+          <a class="nav-link" href="/vouches/">Vouches</a>
+          <a class="nav-link" href="/rules/">Rules</a>
+        </nav>
+
+        <a class="nav-cta" href="https://discord.gg/mm2trades" target="_blank" rel="noreferrer">Join Discord</a>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container hero-grid">
+          <div class="hero-copy">
+            <div class="eyebrow"><span class="eyebrow-dot"></span> Trusted MM2 Trading</div>
+            <h1>Secure Middleman through Discord.</h1>
+            <p class="lead">Facilitating safe cross-trades between Murder Mystery 2 traders for a fee.</p>
+
+            <div class="warning-box" role="alert">
+              <span class="warning-icon">!</span>
+              <div><strong>Someone claiming to be a middleman?</strong> Check them first. Staff will never DM you first.</div>
+            </div>
+
+            <div class="hero-actions">
+              <a class="button" href="https://discord.gg/mm2trades" target="_blank" rel="noreferrer">Join Discord</a>
+              <a class="button-secondary" href="/lookup/">Verify a Middleman</a>
+            </div>
+          </div>
+
+          <div class="hero-visual" aria-label="MM2 Base overview card">
+            <div class="hero-card">
+              <div class="hero-card-header">
+                <div class="brand">
+                  <span class="brand-logo-wrap" style="width:32px;height:32px;">
+                    <img src="/logo.png" alt="MM2 Base icon" />
+                    <span class="brand-fallback">MM</span>
+                  </span>
+                  <span>MM2 Base</span>
+                </div>
+                <span class="live-badge"><span class="live-dot"></span> Community</span>
+              </div>
+
+              <div class="hero-ghost">
+                <div class="mini-stat">
+                  <span class="mini-stat-label">Members</span>
+                  <span class="mini-stat-value">1,284</span>
+                </div>
+                <div class="mini-stat">
+                  <span class="mini-stat-label">Verified MMs</span>
+                  <span class="mini-stat-value">42</span>
+                </div>
+                <div class="mini-stat">
+                  <span class="mini-stat-label">Trade Volume</span>
+                  <span class="mini-stat-value">$142.5K</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="stats-bar section">
+        <div class="container">
+          <div class="stat-grid" aria-label="Server statistics overview">
+            <article class="stat-card">
+              <div class="stat-card-label">Members</div>
+              <div class="stat-card-value">1.3K</div>
+            </article>
+            <article class="stat-card">
+              <div class="stat-card-label">Online</div>
+              <div class="stat-card-value">214</div>
+            </article>
+            <article class="stat-card">
+              <div class="stat-card-label">Boosts</div>
+              <div class="stat-card-value">28</div>
+            </article>
+            <article class="stat-card">
+              <div class="stat-card-label">Verified MMs</div>
+              <div class="stat-card-value">42</div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="community-section section">
+        <div class="container">
+          <div class="section-heading">
+            <h2>Powered by the Community</h2>
+            <p>Public trust signals, verified profiles, and transaction history built around the people who use the service.</p>
+          </div>
+
+          <div class="community-grid">
+            <div class="metric-panel">
+              <div class="metric-list">
+                <div class="metric-row">
+                  <div class="metric-label"><span>Members</span><span class="metric-value">1,284</span></div>
+                  <div class="progress"><div class="progress-bar" style="width: 78%;"></div></div>
+                </div>
+                <div class="metric-row">
+                  <div class="metric-label"><span>Safe Deals</span><span class="metric-value">1,840</span></div>
+                  <div class="progress"><div class="progress-bar" style="width: 64%;"></div></div>
+                </div>
+                <div class="metric-row">
+                  <div class="metric-label"><span>Vouches</span><span class="metric-value">923</span></div>
+                  <div class="progress"><div class="progress-bar" style="width: 88%;"></div></div>
+                </div>
+                <div class="metric-row">
+                  <div class="metric-label"><span>Trade Volume</span><span class="metric-value">$142.5K</span></div>
+                  <div class="progress"><div class="progress-bar" style="width: 70%;"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <aside class="info-panel">
+              <h3>Community snapshot</h3>
+              <p>Middlemen are evaluated across public trust signals, historical vouches, and member feedback rather than item prices alone.</p>
+              <ul>
+                <li>Verified directory access</li>
+                <li>Public vouch history</li>
+                <li>Safety reminders and rules</li>
+              </ul>
+            </aside>
+          </div>
+
+          <div class="vouch-feed" aria-label="Live vouch feed">
+            <div class="feed-row feed-head">
+              <span>Middleman</span>
+              <span>Vouched by</span>
+              <span>Amount</span>
+              <span>Timestamp</span>
+            </div>
+            <div id="vouch-feed"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="section-heading">
+            <h2>Why Choose Us</h2>
+            <p>Built around community trust, practical checks, and safer trading habits.</p>
+          </div>
+
+          <div class="feature-grid">
+            <article class="feature-card">
+              <div class="feature-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 4v5c0 4.5-3 8.4-7 10-4-1.6-7-5.5-7-10V7l7-4zm0 6v4m0 4h.01"/></svg>
+              </div>
+              <h3>Trusted Middlemen</h3>
+              <p>Public-facing profiles help members distinguish verified service providers from impersonators.</p>
+            </article>
+
+            <article class="feature-card">
+              <div class="feature-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4v6c0 4.8-3.2 9.1-8 11-4.8-1.9-8-6.2-8-11V7l8-4zm-1 7l2 2 4-4"/></svg>
+              </div>
+              <h3>Secure Trades</h3>
+              <p>Trading is approached with verification-first habits, caution, and clear public trust information.</p>
+            </article>
+
+            <article class="feature-card">
+              <div class="feature-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg>
+              </div>
+              <h3>Verification</h3>
+              <p>Search by exact Discord ID and check the public profile before a trade begins.</p>
+            </article>
+
+            <article class="feature-card">
+              <div class="feature-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 1v22M17 5h-8a3 3 0 000 6h6a3 3 0 010 6H7"/></svg>
+              </div>
+              <h3>Transparent Fees</h3>
+              <p>Public trade history and case context help members understand what to expect from a service.</p>
+            </article>
+
+            <article class="feature-card">
+              <div class="feature-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 18l5-5 4 4 7-9"/></svg>
+              </div>
+              <h3>Vouch History</h3>
+              <p>Review prior public trust signals and trade outcomes before you move forward.</p>
+            </article>
+
+            <article class="feature-card">
+              <div class="feature-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18h10M8 14l1.7-4h4.6L16 14M9 9h6M12 3v3"/></svg>
+              </div>
+              <h3>Active Community</h3>
+              <p>Members can browse trust signals, exchange context, and compare public histories quickly.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="section-heading">
+            <h2>Meet the Team</h2>
+            <p>Public middlemen listed in the MM2 Base directory are shared with clear verification context and profile history.</p>
+          </div>
+          <div id="team-grid" class="middlemen-grid"></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="section-heading">
+            <h2>FAQ</h2>
+          </div>
+
+          <div class="faq" aria-label="Frequently Asked Questions">
+            <div class="faq-item">
+              <button class="faq-button" type="button" aria-expanded="false">
+                <span>What is a middleman?</span>
+                <span class="plus">+</span>
+              </button>
+              <div class="faq-content">
+                <div class="faq-content-inner">
+                  <p>A middleman is a trusted community member who helps facilitate trades in a more secure or structured way than direct player-to-player exchange.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <button class="faq-button" type="button" aria-expanded="false">
+                <span>How does a middleman trade work?</span>
+                <span class="plus">+</span>
+              </button>
+              <div class="faq-content">
+                <div class="faq-content-inner">
+                  <p>Usually, the middleman coordinates the trade process, verifies the terms, and helps keep the exchange organized. The process should always be checked against the exact Discord ID and the community’s public records.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <button class="faq-button" type="button" aria-expanded="false">
+                <span>Are your middlemen verified?</span>
+                <span class="plus">+</span>
+              </button>
+              <div class="faq-content">
+                <div class="faq-content-inner">
+                  <p>Public membership is checked through the directory and community data. Verification is a trust signal, not a guarantee of risk-free service.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <button class="faq-button" type="button" aria-expanded="false">
+                <span>How much does a middleman cost?</span>
+                <span class="plus">+</span>
+              </button>
+              <div class="faq-content">
+                <div class="faq-content-inner">
+                  <p>Fees vary by trade and individual service arrangement. Community context and public records should be reviewed before agreeing to any terms.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <button class="faq-button" type="button" aria-expanded="false">
+                <span>How do I verify a middleman?</span>
+                <span class="plus">+</span>
+              </button>
+              <div class="faq-content">
+                <div class="faq-content-inner">
+                  <p>Use the public lookup tool and confirm the exact Discord ID matches the person you are dealing with. Do not rely on display names or copied usernames.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <button class="faq-button" type="button" aria-expanded="false">
+                <span>What happens if someone impersonates a middleman?</span>
+                <span class="plus">+</span>
+              </button>
+              <div class="faq-content">
+                <div class="faq-content-inner">
+                  <p>Report the impersonation through official channels and verify the exact Discord ID before continuing. Community members should avoid trusting unsolicited DMs or renamed profiles.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="cta-banner">
+            <h2>Ready to trade with confidence?</h2>
+            <p>Join the MM2 Base Discord community and use the verification tools before starting a trade.</p>
+            <div class="hero-actions">
+              <a class="button" href="https://discord.gg/mm2trades" target="_blank" rel="noreferrer">Join Discord</a>
+              <a class="button-secondary" href="/lookup/">Verify a Middleman</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <div>
+          <h3 class="footer-title">MM2 Base</h3>
+          <p>Public middleman verification and community trust information for MM2 traders.</p>
+        </div>
+
+        <div>
+          <h3 class="footer-title">Navigation</h3>
+          <div class="footer-links">
+            <a href="/">Home</a>
+            <a href="/mms/">Middlemen</a>
+            <a href="/lookup/">Lookup</a>
+            <a href="/stats/">Stats</a>
+            <a href="/vouches/">Vouches</a>
+            <a href="/rules/">Rules</a>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="footer-title">Community</h3>
+          <div class="footer-links">
+            <a href="https://discord.gg/mm2trades" target="_blank" rel="noreferrer">Join Discord</a>
+            <a href="/mms/">Middlemen</a>
+            <a href="/lookup/">Lookup</a>
+            <a href="/vouches/">Vouches</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="container footer-small">
+        © <span id="footer-year"></span> MM2 Base. All rights reserved.
+      </div>
+    </footer>
+  </body>
+</html>

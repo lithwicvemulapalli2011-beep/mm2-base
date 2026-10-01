@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Community statistics and public vouch activity for MM2 Base." />
+    <meta name="theme-color" content="#1a0f08" />
+    <title>MM2 Base | Statistics</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/config.js"></script>
+    <script src="/app.js" defer></script>
+    <script src="/stats/stats.js" defer></script>
+  </head>
+  <body data-page="stats">
+    <header class="site-header">
+      <div class="container navbar">
+        <a class="brand" href="/" aria-label="MM2 Base home">
+          <span class="brand-logo-wrap">
+            <img src="/logo.png" alt="MM2 Base logo" />
+            <span class="brand-fallback">MM</span>
+          </span>
+          <span>MM2 Base</span>
+        </a>
+
+        <button class="mobile-menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false">
+          <span class="hamburger"></span>
+        </button>
+
+        <nav class="nav-links" aria-label="Main navigation">
+          <a class="nav-link" href="/">Home</a>
+          <a class="nav-link" href="/mms/">MMs</a>
+          <a class="nav-link" href="/lookup/">Lookup</a>
+          <a class="nav-link" href="/stats/">Stats</a>
+          <a class="nav-link" href="/vouches/">Vouches</a>
+          <a class="nav-link" href="/rules/">Rules</a>
+        </nav>
+
+        <a class="nav-cta" href="https://discord.gg/mm2trades" target="_blank" rel="noreferrer">Join Discord</a>
+      </div>
+    </header>
+
+    <main>
+      <div class="container">
+        <header class="page-header">
+          <h1 class="page-title">Community Statistics</h1>
+          <p class="page-intro">Public server metrics, middleman counts, and recent vouch activity.</p>
+        </header>
+
+        <section id="stats-root" class="page-card" aria-live="polite">
+          <div id="stat-cards" class="stat-grid"></div>
+          <div style="margin-top: 24px;">
+            <h2>30-Day Vouch Activity</h2>
+            <div id="vouch-chart" class="chart-container" style="margin-top: 18px; min-height: 220px;"></div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <div>
+          <h3 class="footer-title">MM2 Base</h3>
+          <p>Public middleman verification and community trust information for MM2 traders.</p>
+        </div>
+        <div>
+          <h3 class="footer-title">Navigation</h3>
+          <div class="footer-links">
+            <a href="/">Home</a>
+            <a href="/mms/">Middlemen</a>
+            <a href="/lookup/">Lookup</a>
+            <a href="/stats/">Stats</a>
+            <a href="/vouches/">Vouches</a>
+            <a href="/rules/">Rules</a>
+          </div>
+        </div>
+        <div>
+          <h3 class="footer-title">Community</h3>
+          <div class="footer-links">
+            <a href="https://discord.gg/mm2trades" target="_blank" rel="noreferrer">Join Discord</a>
+            <a href="/mms/">Middlemen</a>
+            <a href="/lookup/">Lookup</a>
+            <a href="/vouches/">Vouches</a>
+          </div>
+        </div>
+      </div>
+      <div class="container footer-small">© <span id="footer-year"></span> MM2 Base. All rights reserved.</div>
+    </footer>
+  </body>
+</html>
